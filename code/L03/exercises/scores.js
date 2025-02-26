@@ -29,8 +29,6 @@ betterScores.splice(index, 1); // rimuove l'elemento all'indice indicato (il ,1 
 minScore = Math.min(...betterScores); 
 index = betterScores.indexOf(minScore);
 betterScores.splice(index, 1);
-
-
 // aggiungi NN + 2 nuovi score pari alla media degli score presenti in betterScores
 
 // la calcolo a mano
