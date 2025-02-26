@@ -13,10 +13,23 @@ for (let s of scores)
 
 NN = scores.length - betterScores.length; // modo semplice per capire quanti numeri ho tolto: faccio la differenza tra le lunghezze dei vettori (piuttosto che calcolarlo nel ciclo)
 
-// VERSIONE CON SORT
-betterScores.sort((a, b) => a - b);
-betterScores.shift();
-betterScores.shift();
+/* VERSIONE CON MIN
+
+betterScores.pop(Math.min(betterScores)); // min: dato un insieme di valori lungo a piacere separati da virgole (value1, value2, ..., valueN) restituisce il valore più piccolo
+betterScores.pop(Math.min(betterScores)); // metodo statico, bisogna specificare Math.min(), perché non si appoggia a nessun oggetto
+// SBAGLIATO: pop non toglie un valore specifico, toglie in coda l'ultimo elemento, per cui devo PRIMA calcolare i minimi e POI toglierli a mano
+*/
+
+// PROF
+let minScore = Math.min(...betterScores); // trovo il minimo, prima devo espandere l'array
+let index = betterScores.indexOf(minScore); // trovo l'indice dell'elemento minimo
+betterScores.splice(index, 1); // rimuove l'elemento all'indice indicato (il ,1 è opzionale, serve a ricordarci che stiamo togliendo un solo elemento)
+
+// copio e incollo, visto che lo devo fare due volte, senza let per non ridichiarare le variabili
+minScore = Math.min(...betterScores); 
+index = betterScores.indexOf(minScore);
+betterScores.splice(index, 1);
+
 
 // aggiungi NN + 2 nuovi score pari alla media degli score presenti in betterScores
 
