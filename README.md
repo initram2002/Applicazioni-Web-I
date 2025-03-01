@@ -1,1 +1,1 @@
-Course material for "Applicazioni Web I (01UDFOV)" course at Politecnico di Torino.
+Repository for Applicazioni Web I course (01UDFOV) (AA 2024-2025) at Politecnico di Torino.
