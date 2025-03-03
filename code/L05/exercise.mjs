@@ -33,18 +33,27 @@ function Question(text, username, date) { // non passo la lista di risposte, qua
                 foundAnswers.push(answer);
 
         return foundAnswers;
+
+        // versione con functional methods
+        this.answers.filter(answer => answer.username === username); // restituisce un array dove tutti gli elementi soddisfano la condizione
+
+        return foundAnswers;
+
     }
 
     this.afterDate = (date) => {
-        // TODO
+        return this.answers.filter(answer => answer.date.isAfter(date)); // date associato ad answer è già oggetto dayjs, quello passato no, se dovessi fare dayjs(date) e date fosse già dayjs non da errore, conversione aggiuntiva che non causa errore
     }
 
     this.listByDate = () => {
-        // TODO
+        // return this.answers.sort((a, b) => a.date.isAfter(b.date) ? 1 : -1); // se la data di a è dopo della data di b, restituisce 1, altrimenti -1 (date crescenti)
+        // se sono uguali ritorna -1 (ma rimangono nello stesso posto)
+        // problema: this.answers viene riordinato in place, perdo l'ordine originale, devo creare una copia
+        return [...this.answers].sort((a, b) => a.date.isAfter(b.date) ? 1 : -1);
     } 
 
     this.listByScore = () => {
-        // TODO
+        return [...this.answers].sort((a, b) => b.score - a.score); // ordinamento risposte decrescente
     }
 }
 
@@ -74,7 +83,13 @@ const answersByLorenzo = question.find('Lorenzo Marra');
 console.log(question);
 
 // stampo le risposte date da Lorenzo
-console.log(/*'\n Answers by Lorenzo: ' + */answersByLorenzo.toString());
+console.log('\n Answers by Lorenzo: ' + answersByLorenzo);
+
+// stampo listByDate, listByScore, listAfterDate
+console.log('\n By date: ' + question.listByDate());
+console.log('\n By score: ' + question.listByScore());
+console.log('\n After 2025-02-28: ' + question.afterDate('2025-02-28'));
+// forniscono rappresentazioni grezze, non ci sono refactor del metodo toString 
 
 /**Output: (la data delle risposte non la fa vedere perché siamo a un livello troppo annidato)
  * Question {
