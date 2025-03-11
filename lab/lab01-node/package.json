@@ -1,0 +1,11 @@
+{
+  "name": "lab01-node",
+  "version": "1.0.0",
+  "description": "In this repository you can find the text and a proposed solution for the first laboratory of the course. Specifically, the repository contains the following files:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
