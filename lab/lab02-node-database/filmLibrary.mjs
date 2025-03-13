@@ -81,7 +81,21 @@ function FilmLibrary() {
                 }
             });
         });
-    }
+    };
+
+    this.getFavouriteFilms = () => {
+        return new Promise ((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE isFavorite == 1";
+            db.all(sql, (err, rows) => {
+                if (err)
+                    reject(err);
+                else {
+                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.rating, film.watchDate, film.userId));
+                    resolve(films);
+                }
+            });
+        });
+    };
 }
 
 const db = new sqlite.Database("films.db", (err) => {
@@ -91,6 +105,7 @@ const db = new sqlite.Database("films.db", (err) => {
 
 async function main() {
     // Lab 01
+    console.log("*** LAB 01 ***");
     const film1 = new Film(1, "Pulp Fiction", true, "2024-03-10", 5);
     const film2 = new Film(2, "21 Grams", true, "2024-03-17", 4);
     const film3 = new Film(3, "Star Wars", false);
@@ -127,7 +142,15 @@ async function main() {
     filmLibrary.getRated().forEach((film) => console.log(film.toString()));
 
     // Lab 02
-    console.log(await filmLibrary.getFilms());
+    console.log("*** LAB 02 ***");
+    console.log("*** List of all films ***");
+    const allFilms = await filmLibrary.getFilms();
+    allFilms.forEach((film) => console.log(film.toString()));
+
+    console.log("*** List of favourite films ***");
+    const favouriteFilms = await filmLibrary.getFavouriteFilms();
+    favouriteFilms.forEach((film) => console.log(film.toString()));
+
 }
 
 main()
