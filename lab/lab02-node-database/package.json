@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "sqlite3": "^5.1.7"
+  },
+  "name": "lab02-node-database",
+  "version": "1.0.0",
+  "description": "In this repository you will find a proposed solution for the second laboratory of the course. Specifically, you will find the following files:",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
