@@ -1,4 +1,12 @@
 import dayjs from 'dayjs';
+import sqlite from 'sqlite3';
+
+const db = new sqlite.Database("films.db", (err) => {
+    if (err)
+        console.log("Error opening database:", err.message);
+    else
+        console.log("Connected to the films.db database.");
+});
 
 function Film(id, title, isFavorite = false, watchDate = null, rating = 0, userId = 1) {
     this.id = id;
@@ -66,9 +74,87 @@ function FilmLibrary() {
 
         return ratedFilms;
     }
+
+    this.getAllStoredFilms = () => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films";
+
+            db.all(sql, [], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
+
+    this.getAllFavoriteFilms = () => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE isFavorite = 1";
+
+            db.all(sql, [], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
+
+    this.getFilmsWatchedToday = () => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE watchDate = ?";
+
+            db.all(sql, [dayjs().format("YYYY-MM-DD")], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
+
+    this.getFilmsWatchedBeforeDate = (date) => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE watchDate < ?";
+
+            db.all(sql, [dayjs(date).format("YYYY-MM-DD")], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
+
+    this.getFilmsRatingGreaterEqualThan = (rating) => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE rating >= ?";
+
+            db.all(sql, [rating], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
+
+    this.getFilmsByString = (string) => {
+        return new Promise((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE title LIKE ?";
+
+            db.all(sql, [`%${string}%`], (err, rows) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId)));
+            });
+        });
+    };
 }
 
-function main() {
+async function main() {
     // Lab 01
 
     // Ex 1
@@ -115,7 +201,98 @@ function main() {
     const ratedFilms = filmLibrary.getRated();
     ratedFilms.forEach((film) => console.log(film.toString()));
 
+    // Lab 02
+
+    // Ex 1
+
+    // a. Print all the stored films
+    await filmLibrary.getAllStoredFilms()
+        .then((films) => {
+            console.log("*** All stored films ***");
+            if (films.length === 0)
+                console.log("No films yet, try later.");
+            else
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error("Error retrieving all films:", err);
+        });
+
+    // b. Print all favorite films
+    await filmLibrary.getAllFavoriteFilms()
+        .then((films) => {
+            console.log("*** All favorite films ***");
+            if (films.length === 0)
+                console.log("No favorite films yet, try later.");
+            else
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error("Error retrieving all favorite films:", err);
+        });
+
+    // c. Print all films watched today
+    await filmLibrary.getFilmsWatchedToday()
+        .then((films) => {
+            console.log("*** All films watched today ***");
+            if (films.length === 0)
+                console.log(" No films watched today, time to watch one?");
+            else
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error("Error retrieving all films watched today:", err);
+        });
+
+    // d. Print films whose watch date is earlier than a given date
+    const date = "2024-03-21";
+    await filmLibrary.getFilmsWatchedBeforeDate(date)
+        .then((films) => {
+            console.log(`*** All films watched before ${date} ***`);
+            if (films.length === 0)
+                console.log(`No films watched before ${date}, sorry.`);
+            else
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error(`Error retrieving all films watched before ${date}:`, err);
+        });
+
+    // e. Print all films whose rating is greater or equal to a given number
+    const rating = 4;
+    await filmLibrary.getFilmsRatingGreaterEqualThan(rating)
+        .then((films) => {
+            console.log(`*** All films with rating >= ${rating} ***`);
+            if (films.length === 0)
+                console.log("No films with this rating, yet.");
+            else 
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error(`Error retrieving all films with rating >= ${rating}:`, err);
+        });
+
+    // f. Print all films whose title contains a given string
+    const string = "ar";
+    await filmLibrary.getFilmsByString(string)
+        .then((films) => {
+            console.log(`*** All films containing '${string}' ***`);
+            if (films.length === 0)
+                console.log(`No films with the word ${string} in the title.`);
+            else
+                films.forEach((film) => console.log(film.toString()));
+        })
+        .catch((err) => {
+            console.error(`Error retrieving all films containing ${string}:`, err);
+        });
     debugger;
+
+    db.close((err) => {
+        if (err)
+            console.log("Error closing the database:", err.message);
+        else
+            console.log("Database connection closed.");
+    })
 }
 
 main()
