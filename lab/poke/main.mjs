@@ -174,7 +174,7 @@ function insertBowl(db, bowl) {
 
         db.run(sql, params, function(err) {
             if (err)
-                reject(err)
+                reject(err);
             else
                 resolve();
         });
