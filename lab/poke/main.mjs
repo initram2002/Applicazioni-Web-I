@@ -1,3 +1,5 @@
+import sqlite3 from 'sqlite3';
+
 function createBowl({id, size, base, proteins = [], ingredients = [], quantity = 1, price = 0}) {
     return {id, size, base, proteins, ingredients, quantity, price};
 }
@@ -131,6 +133,109 @@ function createUserCollection() {
     };
 }
 
+function getAllBowls(db) {
+    return new Promise ((resolve, reject) => {
+        const sql = "SELECT * FROM bowls";
+
+        db.all(sql, [], (err, rows) => {
+            if (err)
+                reject(err);
+            else
+                resolve(rows);
+        });
+    });
+}
+
+function getBowlsBySize(db, size) {
+    return new Promise ((resolve, reject) => {
+        const sql = "SELECT * FROM bowls WHERE size = ?";
+
+        db.all(sql, [size], (err, rows) => {
+            if (err)
+                reject(err);
+            else
+                resolve(rows);
+        });
+    });
+}
+
+function insertBowl(db, bowl) {
+    return new Promise((resolve, reject) => {
+        const sql = "INSERT INTO bowls (id, orderId, size, base, quantity, price) VALUES (?, ?, ?, ?, ?, ?)";
+
+        const params = [
+            bowl.id,
+            bowl.orderId,
+            bowl.size,
+            bowl.base,
+            bowl.quantity,
+            bowl.price
+        ];
+
+        db.run(sql, params, function(err) {
+            if (err)
+                reject(err)
+            else
+                resolve();
+        });
+    });
+}
+
+function deleteBowlById(db, bowlId) {
+    return new Promise((resolve, reject) => {
+        const sql = "DELETE FROM bowls WHERE id = ?";
+        
+        db.run(sql, [bowlId], function(err) {
+            if (err)
+                reject(err);
+            else
+                if (this.changes > 0) 
+                    resolve();
+                else
+                    reject(new Error("No bowl found with the given ID."));
+        });
+    });
+}
+
+function updateBowlById(db, bowlId, updates) {
+    return new Promise((resolve, reject) => {
+        const columns = Object.keys(updates);
+        const values = Object.values(updates);
+
+        const setClause = columns.map(col => `${col} = ?`).join(", ");
+
+        const sql = `UPDATE bowls SET ${setClause} WHERE id = ?`;
+
+        const params = [...values, bowlId];
+
+        db.run(sql, params, function(err) {
+            if (err)
+                reject(err);
+            else
+                if (this.changes > 0) 
+                    resolve();
+                else
+                    reject(new Error("No bowl found with the given ID, or no changes made"));
+        });
+    });
+}
+
+function increasePriceForSize(db, size, increaseAmount) {
+    return new Promise((resolve, reject) => {
+        const sql = "UPDATE bowls SET price = price + ? WHERE size = ?";
+
+        db.run(sql, [increaseAmount, size], function(err) {
+            if (err)
+                reject(err);
+            else
+                if (this.changes > 0)
+                    resolve();
+                else
+                    reject(new Error("No rows updated, possibly no bowls matched the given size."));
+        });
+    })
+}
+
 function main() {
     const bowlCollection = createBowlCollection();
 
@@ -246,28 +351,137 @@ function main() {
 
     console.log("Admin Users:", userCollection.getUsersByRole("admin"));
 
-    const sampleOrder = {
+    const orderCollection = createOrderCollection();
+
+    const order1 = createOrder({
         id: "o1",
         userId: "u1",
-        bowls: [bowl1, bowl2],
-        totalPrice: 31,
-        specialRequests: "No onions, please."
-    };
-
-    userCollection.addOrderToUser("u1", sampleOrder);
-
-    console.log("Michela with a new order:", userCollection.getUserById("u1"));
-
-    const newOrder = createOrder({
-        id: "o1",
-        userId: "u1",
-        bowls: [],
-        totalPrice: 30
+        bowls: [bowl1],
+        specialRequests: "No onions, please",
+        totalPrice: 9,
+        discountApplied: false
     });
 
-    userCollection.addOrderToUser("u1", newOrder);
+    const order2 = createOrder({
+        id: "o2",
+        userId: "u1",
+        bowls: [bowl2],
+        specialRequests: "Add extra sauce",
+        totalPrice: 22,
+        discountApplied: false
+    });
 
-    const updatedUser = userCollection.getUserById("u1");
+    const order3 = createOrder({
+        id: "o3",
+        userId: "u2",
+        bowls: [bowl3],
+        specialRequests: "",
+        totalPrice: 14,
+        discountApplied: false
+    });
+
+    const order4 = createOrder({
+        id: "o4",
+        userId: "u3",
+        bowls: [bowl1, bowl2],
+        specialRequests: "Allergic to peanuts",
+        totalPrice: 31,
+        discountApplied: false
+    });   
+
+    const order5 = createOrder({
+        id: "o5",
+        userId: "u3",
+        bowls: [bowl1, bowl2, bowl3],
+        specialRequests: "Extra wasabi",
+        totalPrice: 45,
+        discountApplied: true
+    });
+
+    orderCollection.addOrder(order1);
+    orderCollection.addOrder(order2);
+    orderCollection.addOrder(order3);
+    orderCollection.addOrder(order4);
+    orderCollection.addOrder(order5);
+
+    console.log("=== All Orders in Order Collection ===");
+    console.log(orderCollection.getAllOrders());
+
+    console.log("=== Orders by userId = 'u1' ===");
+    console.log(orderCollection.getOrderByUserId("u1"));
+
+    const db = new sqlite3.Database("database.db", (err) => {
+        if (err)
+            console.error("Error opening database:", err.message);
+        else
+            console.log("Connected to the database.db database.");
+    });
+
+    getAllBowls(db)
+        .then((bowls) => {
+            console.log("=== All bowls ===");
+            console.log(bowls);
+        })
+        .catch((err) => {
+            console.error("Error retrieving all bowls:", err);
+        });
+
+    getBowlsBySize(db, "R")
+        .then((regularBowls) => {
+            console.log("=== Regular Bowls (size = 'R') ===");
+            console.log(regularBowls);
+        })
+        .catch((err) => {
+            console.error("Error retrieving bowls by size:", err);
+        });
+
+    const newBowl = {
+        id: "bXYZ",
+        orderId: "o123",
+        size: "M",
+        base: "rice",
+        quantity: 2,
+        price: 22.0
+    };
+
+    insertBowl(db, newBowl)
+        .then(() => {
+            console.log("[SUCCESS] Bowl inserted successfully:", newBowl.id);
+        })
+        .catch((err) => {
+            console.error("[FAILURE] Error inserting bowl:", err.message);
+        });
+
+    deleteBowlById(db, "bXYZ")
+        .then(() => {
+            console.log("[SUCCESS] Bowl deleted successfully: bXYZ");
+        })
+        .catch((err) => {
+            console.error("[FAILURE] Error deleting bowl:", err.message);
+        });
+
+    updateBowlById(db, "bXYZ", {quantity: 3, price: 33.0})
+        .then(() => {
+            console.log("[SUCCESS] Bowl updated successfully for ID: bXYZ");
+        })
+        .catch((err) => {
+            console.error("[FAILURE] Error updating bowl:", err.message);
+        });
+
+    increasePriceForSize(db, "M", 2.0)
+        .then(() => {
+            console.log("[SUCCESS] Price updated for all Medium bowls.");
+        })
+        .catch((err) => {
+            console.error("[FAILURE] Error updating price:", err.message);
+        });
+
+    db.close((err) => {
+        if (err)
+            console.error("Error closing the database:", err.message);
+        else
+            console.log("Database connection closed.");
+    });
 }
 
 main()
