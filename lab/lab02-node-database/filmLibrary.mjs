@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import sqlite from 'sqlite3';
 
 function Film(id, title, isFavorite = false, watchDate = null, rating = 0, userId = 1) {
     this.id = id;
@@ -41,12 +40,11 @@ function FilmLibrary() {
     };
 
     this.deleteFilm = (id) => {
-        const numberOfFilms = this.films.length;
+        const filmsFiltered = this.films.filter(function(film) {
+            return film.id !== id;
+        });
 
-        this.films = this.films.filter(f => f.id !== id);
-
-        if (this.films.length === numberOfFilms) 
-            throw new Error("No films deleted: this id doesn't exist.");
+        this.films = filmsFiltered;
     };
 
     this.resetWatchedFilms = () => {
@@ -72,7 +70,7 @@ function FilmLibrary() {
     this.getFilms = () => {
         return new Promise ((resolve, reject) => {
             const sql = "SELECT * FROM films";
-            db.all(sql, (err, rows) => {
+            db.all(sql, [], (err, rows) => {
                 if (err)
                     reject(err)
                 else {
@@ -86,31 +84,59 @@ function FilmLibrary() {
     this.getFavouriteFilms = () => {
         return new Promise ((resolve, reject) => {
             const sql = "SELECT * FROM films WHERE isFavorite == 1";
-            db.all(sql, (err, rows) => {
+            db.all(sql, [], (err, rows) => {
                 if (err)
                     reject(err);
                 else {
-                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.rating, film.watchDate, film.userId));
+                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
                     resolve(films);
+                }
+            });
+        });
+    };
+
+    this.getTodayWatchedFilms = () => {
+        return new Promise ((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE watchDate == ?";
+            db.all(sql, [dayjs().format("YYYY-MM-DD")], (err, rows) => {
+                if (err)
+                    reject(err);
+                else {
+                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
+                    resolve(films);
+                }
+            });
+        });
+    };
+
+    this.getFilmsBeforeDate = (date) => {
+        return new Promise ((resolve, reject) => {
+            const sql = "SELECT * FROM films WHERE watchDate <= ?";
+            db.all(sql, [dayjs(date).format("YYYY-MM-DD")], (err, rows) => {
+                if (err)
+                    reject(err);
+                else {
+                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
+                    resolve(films); 
                 }
             });
         });
     };
 }
 
-const db = new sqlite.Database("films.db", (err) => {
-    if (err)
-        throw err;
-});
-
-async function main() {
+function main() {
     // Lab 01
-    console.log("*** LAB 01 ***");
+
+    // Ex 1
+
+    // Creating some film entries
     const film1 = new Film(1, "Pulp Fiction", true, "2024-03-10", 5);
     const film2 = new Film(2, "21 Grams", true, "2024-03-17", 4);
     const film3 = new Film(3, "Star Wars", false);
     const film4 = new Film(4, "Matrix", false)
     const film5 = new Film(5, "Shrek", false, "2024-03-21", 3)
+
+    // Adding the films to the film library
     const filmLibrary = new FilmLibrary();
 
     filmLibrary.addNewFilm(film1);
@@ -119,38 +145,33 @@ async function main() {
     filmLibrary.addNewFilm(film4);
     filmLibrary.addNewFilm(film5);
 
+    // Print films
     console.log("*** List of films ****");
-
     filmLibrary.films.forEach((film) => console.log(film.toString()));
 
-    console.log("*** List of films (sorted by watch date) ***");
+    // Ex 2
 
-    filmLibrary.sortByDate().forEach((film) => console.log(film.toString()));
+    // Print sorted films
+    console.log("*** List of films (sorted) ***");
+    const sortedFilms = filmLibrary.sortByDate();
+    sortedFilms.forEach((film) => console.log(film.toString()));
 
-    console.log("*** List of films (after removing film with filmId = 1) ***");
+    // Deleting film #3
+    filmLibrary.deleteFilm(3);
 
-    filmLibrary.deleteFilm(1);
-    filmLibrary.films.forEach((film) => console.log(film.toString()));
-    filmLibrary.addNewFilm(film1);
-
-    console.log("*** List of films (after removing all watch dates) ***");
-
+    // Reset dates
     filmLibrary.resetWatchedFilms();
+
+    // Printing modified Library
+    console.log("*** List of films ***");
     filmLibrary.films.forEach((film) => console.log(film.toString()));
 
-    console.log("*** List of films (only rated ones) ***")
-    filmLibrary.getRated().forEach((film) => console.log(film.toString()));
+    // Retrieve and print films with an assigned rating
+    console.log("*** Films filtered, only the rated ones ***");
+    const ratedFilms = filmLibrary.getRated();
+    ratedFilms.forEach((film) => console.log(film.toString()));
 
-    // Lab 02
-    console.log("*** LAB 02 ***");
-    console.log("*** List of all films ***");
-    const allFilms = await filmLibrary.getFilms();
-    allFilms.forEach((film) => console.log(film.toString()));
-
-    console.log("*** List of favourite films ***");
-    const favouriteFilms = await filmLibrary.getFavouriteFilms();
-    favouriteFilms.forEach((film) => console.log(film.toString()));
-
+    debugger;
 }
 
 main()
