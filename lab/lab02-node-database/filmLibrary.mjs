@@ -8,6 +8,13 @@ const db = new sqlite.Database("films.db", (err) => {
         console.log("Connected to the films.db database.");
 });
 
+const db_copy = new sqlite.Database("films copy.db", (err) => {
+    if (err)
+        console.log("Error opening the copy of the original database:", err.message);
+    else
+        console.log("Connected to the copy of films.db database.");
+});
+
 function Film(id, title, isFavorite = false, watchDate = null, rating = 0, userId = 1) {
     this.id = id;
     this.title = title;
@@ -152,6 +159,50 @@ function FilmLibrary() {
             });
         });
     };
+
+    this.storeNewMovie = (film) => {
+        return new Promise((resolve, reject) => {
+            const sql = "INSERT INTO films (id, title, isFavorite, watchDate, rating, userId) VALUES (?, ?, ?, ?, ?, ?)";
+
+            const params = [film.id, film.title, film.isFavorite, film.watchDate.format("YYYY-MM-DD"), film.rating, film.userId];
+
+            db_copy.run(sql, params, function(err) {
+                if (err)
+                    reject(err);
+                else   
+                    resolve();
+            });
+        });
+    };
+    
+    this.deleteMovie = (id) => {
+        return new Promise((resolve, reject) => {
+            const sql = "DELETE FROM films WHERE id = ?";
+
+            db_copy.run(sql, [id], function(err) {
+                if (err)
+                    reject(err);
+                else
+                    if (this.changes > 0)
+                        resolve();
+                    else
+                        reject(new Error("No films found with the given id."));
+            });
+        });
+    };
+
+    this.deleteWatchDate = () => {
+        return new Promise((resolve, reject) => {
+            const sql = "UPDATE films SET watchDate = ?";
+
+            db_copy.run(sql, [null], function(err) {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            })
+        })
+    };
 }
 
 async function main() {
@@ -285,14 +336,46 @@ async function main() {
         .catch((err) => {
             console.error(`Error retrieving all films containing ${string}:`, err);
         });
-    debugger;
+
+    // Ex 2
+
+    // a. Store a new movie into the database
+    const newMovie = new Film(6, "The Dark Knight", true, "2024-03-25", 5, 1);
+    await filmLibrary.storeNewMovie(newMovie)
+        .then(() => {
+            console.log("[SUCCESS] Film inserted successfully:", newMovie.id);
+        })
+        .catch((err) => {
+            console.error("[FAILURE] Error inserting film:", err.message);
+        });
+
+    // b. Delete a movie from the database
+    const movieToDelete = 4;
+    await filmLibrary.deleteMovie(movieToDelete)
+        .then(() => {
+            console.log(`[SUCCESS] Film deleted successfully: ${movieToDelete}`);
+        })
+        .catch((err) => {
+            console.log("[FAILURE] Error deleting film:", err.message);
+        });
+
+    // c. Delete the watch date of all films stored in the database
+    await filmLibrary.deleteWatchDate()
+        .then(() => {
+            console.log("[SUCCESS] Watch dates deleted successfully.");
+        })
+        .catch((err) => {
+            console.log("[FAILURE] Error deleting watch dates:", err.message);
+        });
 
     db.close((err) => {
         if (err)
             console.log("Error closing the database:", err.message);
         else
             console.log("Database connection closed.");
-    })
+    });
+
+    debugger;
 }
 
 main()
