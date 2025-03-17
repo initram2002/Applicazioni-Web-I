@@ -66,62 +66,6 @@ function FilmLibrary() {
 
         return ratedFilms;
     }
-
-    this.getFilms = () => {
-        return new Promise ((resolve, reject) => {
-            const sql = "SELECT * FROM films";
-            db.all(sql, [], (err, rows) => {
-                if (err)
-                    reject(err)
-                else {
-                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
-                    resolve(films);
-                }
-            });
-        });
-    };
-
-    this.getFavouriteFilms = () => {
-        return new Promise ((resolve, reject) => {
-            const sql = "SELECT * FROM films WHERE isFavorite == 1";
-            db.all(sql, [], (err, rows) => {
-                if (err)
-                    reject(err);
-                else {
-                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
-                    resolve(films);
-                }
-            });
-        });
-    };
-
-    this.getTodayWatchedFilms = () => {
-        return new Promise ((resolve, reject) => {
-            const sql = "SELECT * FROM films WHERE watchDate == ?";
-            db.all(sql, [dayjs().format("YYYY-MM-DD")], (err, rows) => {
-                if (err)
-                    reject(err);
-                else {
-                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
-                    resolve(films);
-                }
-            });
-        });
-    };
-
-    this.getFilmsBeforeDate = (date) => {
-        return new Promise ((resolve, reject) => {
-            const sql = "SELECT * FROM films WHERE watchDate <= ?";
-            db.all(sql, [dayjs(date).format("YYYY-MM-DD")], (err, rows) => {
-                if (err)
-                    reject(err);
-                else {
-                    const films = rows.map((film) => new Film(film.id, film.title, film.isFavorite, film.watchDate, film.rating, film.userId));
-                    resolve(films); 
-                }
-            });
-        });
-    };
 }
 
 function main() {
