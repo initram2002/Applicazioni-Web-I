@@ -7,8 +7,10 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Hereafter, we report the designed HTTP APIs, also implemented in the project.",
   "dependencies": {
+    "express": "^4.21.2",
     "sqlite3": "^5.1.7"
-  }
+  },
+  "keywords": []
 }

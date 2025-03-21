@@ -1,0 +1,143 @@
+# File for testing the API with a dedicated Visual Studio Code extension.
+
+## Retrieving all the films.
+GET http://localhost:3001/api/films HTTP/1.1
+###
+
+## Retrieving a specific film specifing its ID.
+GET http://localhost:3001/api/films/1 HTTP/1.1
+###
+
+## Retrieving all the films with a specfic filter (in this example "unseen").
+GET http://localhost:3001/api/films?filter=filter-unseen HTTP/1.1
+###
+
+## Create new film (with all the fields except ID).
+POST http://localhost:3001/api/films HTTP/1.1
+content-type: application/json
+
+{
+    "title": "Inception",
+    "isFavorite": true,
+    "rating": 5,
+    "watchDate": "${{$datetime 'YYYY-MM-DD' -15 d }}",
+    "userId": 4
+}
+###
+
+## Create new film (without only title).
+POST http://localhost:3001/api/films HTTP/1.1
+content-type: application/json
+
+{
+    "title": "The Grand Budapest Hotel"
+}
+###
+
+## Retrieving all the fims with a specfied filter.
+GET http://localhost:3001/api/films?filter=filter-lastmonth HTTP/1.1
+###
+
+## Updates the first film.
+PUT http://localhost:3001/api/films/1 HTTP/1.1
+content-type: application/json
+
+{
+    "title": "The Silence of the Lambs",
+    "isFavorite": true,
+    "rating": 5,
+    "watchDate": null,
+    "userId": 1
+}
+###
+
+## Updates film favorite property.
+PUT http://localhost:3001/api/films/1/isFavorite HTTP/1.1
+content-type: application/json
+
+{
+    "isFavorite": true
+}
+###
+
+## Updates film rating property
+PUT http://localhost:3001/api/films/1/rating HTTP/1.1
+content-type: application/json
+
+{
+    "rating": "${{$randomInt 1 6}}"
+}
+###
+
+## Deletes film.
+DELETE http://localhost:3001/api/films/1 HTTP/1.1
+###
+
+## Retrieving all the films.
+GET http://localhost:3001/api/films HTTP/1.1
+###
+
+# Wrong Requests
+
+## Trying to retrieve a film with an ID that does not exist.
+GET http://localhost:3001/api/films/1000 HTTP/1.1
+###
+
+## Trying to retrieve a film with a wrong ID.
+GET http://localhost:3001/api/films/ThisIsAStringId HTTP/1.1
+###
+
+## Trying to create a wrong film.
+POST http://localhost:3001/api/films HTTP/1.1
+content-type: application/json
+
+{
+    "wrong_title_field": "Inception",
+    "isFavorite": "I really liked it!",
+    "watchDate": "March the 21st, 2025",
+    "rating": 71
+}
+###
+
+## Trying to update a film with wrong values.
+PUT http://localhost:3001/api/films/1 HTTP/1.1
+content-type: application/json
+
+{
+    "title": "The Grand Budapest Hotel",
+    "isFavorite": 4,
+    "watchDate": "",
+    "rating": 6
+}
+###
+
+## Trying to update film isFavorite property with a wrong value.
+PUT http://localhost:3001/api/films/1/isFavorite HTTP/1.1
+content-type: application/json
+
+{
+    "isFavorite": "Really liked it!"
+}
+###
+
+## Trying to update film rating property with a wrong value.
+PUT http://localhost:3001/api/films/1/rating HTTP/1.1
+content-type: application/json
+
+{
+    "rating": 69
+}
+###
+
+## Updates film with an id that does not exist.
+PUT http://localhost:3001/api/films/999 HTTP/1.1
+content-type: application/json
+
+{
+    "title": "The Silence of the Lambs",
+    "isFavorite": true,
+    "rating": 5,
+    "watchDate": null,
+    "userId": 1
+}
+###
