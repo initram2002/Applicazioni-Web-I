@@ -1,0 +1,13 @@
+.list-group .selected-item {
+    background-color: #0f5c9d !important;
+    color: #ffffff !important;
+}
+
+.list-group-flush .list-group-item {
+    background-color: transparent;
+    border-bottom: 1px solid #dee2e6;
+}
+
+html, body {
+    overflow: hidden;
+}
