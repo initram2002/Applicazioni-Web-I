@@ -1,8 +1,9 @@
 # Exercise 1: Better Scores
-_Goal: basic handling of JavaScript arrays_
+
+## Goal: basic handling of JavaScript arrays
 
 Develop a small JavaScript program to manage the scores given to your user in a question-and-answer website (e.g., StackOverflow). Scores are integer numbers, and they may be negative. You should:
- 
+
 - Define an array with all the scores you received in chronological order. For the moment:
   - Embed the scores directly in the source code.
   - Ignore the question, answer, and date that generated the score.
@@ -13,7 +14,8 @@ Develop a small JavaScript program to manage the scores given to your user in a 
 - Print both arrays, comparing the scores before and after the "improvement," and showing the averages in both cases.
 
 # Exercise 2: My Users' List
-_Goal: basic handling of JavaScript strings_
+
+## Goal: basic handling of JavaScript strings
 
 Develop a small JS program to manage the list of users in a Q&A website.
 
